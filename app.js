@@ -19,7 +19,6 @@ let socketMap = new Map();
 let roomArr = [];
 //let roomArr = [{"test":"test"},{"test2":"test2"}];
 var cnt = 0;
-let roomNameG = '';
 
 function mongooseInit(mongoose) {
   // 2. testDB 세팅
@@ -107,25 +106,26 @@ io.sockets.on('connection', (socket) => {
     }
 
     for (let index = 0; index < roomArr.length; index++) {
-      console.log("del roomArr:" + JSON.stringify([...roomArr[index].members]));
+      //console.log("del roomArr:" + JSON.stringify([...roomArr[index].members]));
+      console.log("Del roomArr id:"+roomArr[index].id +" members:" + JSON.stringify([...roomArr[index].members]));
     }
     console.log('--------------');
   });
 
-  socket.on('setNameS', (name) => {
-    if (isEmpty(name)){
+  socket.on('setNameS', (msgJson) => {
+    if (isEmpty(msgJson.name)){
       socket.name = 'Guest' + cnt;
       cnt++;
       //io.to(socket.id).emit('setNameC', socket.name);
     } else {
-      socket.name = name;
+      socket.name = msgJson.name;
     }
     io.to(socket.id).emit('setNameC', socket.name);
     if (socketArr.length > 0) {
       let socketJson;
       let pushFlag = true;
       for (let index = 0; index < socketArr.length; index++) {
-        if (socketArr[index].name == name) {
+        if (socketArr[index].name == msgJson.name) {
           socketJson = {"id":socket.id,"name":socket.name};
           socketArr[index].id = socket.id;
           pushFlag = false;
@@ -192,45 +192,35 @@ io.sockets.on('connection', (socket) => {
     });
   });
 
-  socket.on('joinRoom2', (roomName, name) => {
-    socket.join(roomName, () => {
-      console.log(name + ' join a ' + roomName);
-      io.to(roomName).emit('joinRoom2', roomName, name);
+  socket.on('joinRoom2', (msgJson/*roomName, name*/) => {
+    socket.join(msgJson.roomName, () => {
+      console.log(msgJson.name + ' join a ' + msgJson.roomName);
+      io.to(msgJson.roomName).emit('joinRoom2',{"roomName":msgJson.roomName,"name":msgJson.name});
       if (roomArr.length > 0) {
         //roomArr id 검색 member 찾아서 맴버를  set으로 가져오고 이름 삽입
         let pushFlag = true;
         for (let index = 0; index < roomArr.length; index++) {
-          if (roomArr[index].id == roomName) {
+          if (roomArr[index].id == msgJson.roomName) {
             let memberSet = new Set(roomArr[index].members);
-            memberSet.add(name);
-            roomArr[index] = {"id":roomName,"members":memberSet};
+            memberSet.add(msgJson.name);
+            roomArr[index] = {"id":msgJson.roomName,"members":memberSet};
             //roomArr.push(JSON.stringify(roomJson));
             pushFlag = false;
           } 
         }
         if (pushFlag) {
-          let memberSet = new Set([name]);
-          roomArr.push({"id":roomName,"members":new Set([name])});
+          roomArr.push({"id":msgJson.roomName,"members":new Set([msgJson.name])});
         }
       } else {
-        let memberSet = new Set([name]);
-        roomArr.push({"id":roomName,"members":new Set([name])});
+        roomArr.push({"id":msgJson.roomName,"members":new Set([msgJson.name])});
       }
       //console.log('roomArr:' + roomArr);
       
       for (let index = 0; index < roomArr.length; index++) {
-        console.log("Add roomArr:" + JSON.stringify([...roomArr[index].members]));
+        console.log("Add roomArr id:"+roomArr[index].id +" members:" + JSON.stringify([...roomArr[index].members]));
       }
       console.log('--------------');
-      
-      console.log(io.sockets.clients());
-      var sockets = io.sockets.sockets;
-      for(var socketId in sockets)
-      {
-        var socket = sockets[socketId]; //loop through and do whatever with each connected socket
-        //...
-        console.log('socketId:'+socket);
-      }
+
     });
   });
 
@@ -271,8 +261,8 @@ io.sockets.on('connection', (socket) => {
   });
   */
 
-  socket.on('chatMessage2', (roomName, name, msg) => {
-    io.to(roomName).emit('chatMessage2', name, msg);
+  socket.on('chatMessage2', (msgJson/*roomName, name, msg*/) => {
+    io.to(msgJson.roomName).emit('chatMessage2',{"name":msgJson.name, "msg":msgJson.msg} );
     //console.log('socketIds:' + socketIds);
   });
 
