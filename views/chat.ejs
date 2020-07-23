@@ -1,0 +1,141 @@
+<!-- socket\room_chat\views\chat.ejs -->
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+<select>
+  <option value="Room1">Room1</option>
+  <option value="Room2">Room2</option>
+</select>
+
+<form action="" id='msg'>
+  <input id="m" autocomplete="off"/>
+  <button>Send</button>
+</form>
+<form action="" id="room">
+  <input id="roomNumber" autocomplete="off"/>
+  <button>enter</button>
+</form>
+<ul id="messages"></ul>
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  $(() => {
+    let name = prompt('What your name');
+    console.log('setNameS:' + name);
+    //소켓 접속
+    const socket = io();
+    //socket.emit('setNameS', name);
+    socket.emit('setNameS', {"name":name});
+
+    let room = ['room1', 'room2'];
+    let num = 0;
+    let roomNameG = '';
+
+    //socket.emit('joinRoom', num, name);
+
+    $('select').change(() => {
+      socket.emit('leaveRoom', num, name);
+      num++;
+      num = num % 2;
+      socket.emit('joinRoom', num, name);
+    });
+
+
+    $('#msg').submit(() => {
+      //socket.emit('chatMessage2', roomNameG, name, $('#m').val());
+      socket.emit('chatMessage2',{"roomName":roomNameG,"name":name,"msg":$('#m').val()});
+      $('#m').val('');
+      return false;
+    });
+
+    // $('#msg').submit(() => {
+    //   socket.emit('chat message', num, name, $('#m').val());
+    //   $('#m').val('');
+    //   return false;
+    // });
+
+    $('#room').submit(() => {
+      //socket.emit('joinRoom2', $('#roomNumber').val(), name );
+      socket.emit('joinRoom2', {"roomName":$('#roomNumber').val(),"name":name} );
+      //$('#m').val('');
+      return false;
+    });
+
+    socket.on('setNameC', (name2) => {
+      $('#messages').append($('<li>').text(' setNmae :  ' + name2));
+        name = name2;
+    });
+
+    socket.on('chatMessage2', (msgJson/*name, msg*/) => {
+      $('#messages').append($('<li>').text(msgJson.name + '  :  ' + msgJson.msg));
+    });
+
+    socket.on('leaveRoom2', (roomName, name) => {
+      $('#messages').append($('<li>').text(name + '    leaved ' + roomName + ' :('));
+    });
+
+    socket.on('joinRoom', (num, name) => {
+      $('#messages').append($('<li>').text(name + '    joined ' + room[num] + ':)'));
+    });
+
+    socket.on('joinRoom2', (msgJson) => {
+      $('#messages').append($('<li>').text(msgJson.name + '    joined ' + msgJson.roomName + ':)'));
+        roomNameG = msgJson.roomName;
+    });
+
+    socket.on('userDisconnected', (name) => {
+      $('#messages').append($('<li>').text(name + ' userDisconnected ' + name + ':)'));
+        //roomNameG = roomName;
+    });
+  });
+</script>
+</body>
+</html>
