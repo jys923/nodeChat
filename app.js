@@ -1,8 +1,25 @@
 /* socket\room_chat\app.js */
-const mongoose = require('mongoose');
 const app = require('express')();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const fs = require('fs');
+const options = {
+  key: fs.readFileSync('./openssl/file.pem'),
+  cert: fs.readFileSync('./openssl/file.crt'),
+  // key: fs.readFileSync('/etc/letsencrypt/live/ws.danchu.co.kr/privkey.pem'),
+  // cert: fs.readFileSync('/etc/letsencrypt/live/ws.danchu.co.kr/cert.pem'),
+  // ca: fs.readFileSync('/etc/letsencrypt/live/ws.danchu.co.kr/chain.pem'),
+  secure:true,
+  reconnect: true,
+  rejectUnauthorized : false
+};
+const https = require('https').createServer(options, app)
+//const http = require('http').createServer(options, app)
+const io = require('socket.io')(https);
+
+/* socket\room_chat\app.js */
+// const mongoose = require('mongoose');
+// const app = require('express')();
+// const http = require('http').Server(app);
+// const io = require('socket.io')(http);
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
@@ -146,6 +163,6 @@ io.sockets.on('connection', (socket) => {
   });
 });
 
-http.listen(3000, () => {
+https.listen(3000, () => {
   console.log('Connect at 3000');
 });
