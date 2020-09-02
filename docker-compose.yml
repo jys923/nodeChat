@@ -1,0 +1,8 @@
+chat:
+  build: .
+  volumes:
+#  - /etc/letsencrypt/live/ws.danchu.co.kr/:/etc/letsencrypt/live/ws.danchu.co.kr/
+  - /etc/letsencrypt/:/etc/letsencrypt/
+  ports:
+  - "3000:3000/tcp"
+  command: node app.js
