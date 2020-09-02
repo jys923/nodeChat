@@ -81,8 +81,9 @@ io.sockets.on('connection', (socket) => {
       //io.to(socket.id).emit('setNameC', socket.name);
     } else {
       socket.name = msgJson.name;
+      socket.uuid = msgJson.id;
     }
-    io.to(socket.id).emit('setNameC', socket.name);
+    io.to(socket.id).emit('setNameC', {"name":socket.name,"id":socket.uuid});
     if (socketArr.length > 0) {
       let socketJson;
       let pushFlag = true;
@@ -146,7 +147,7 @@ io.sockets.on('connection', (socket) => {
   });
 
   socket.on('chatMessage2', (msgJson/*roomName, name, msg*/) => {
-    io.to(msgJson.roomName).emit('chatMessage2',{"name":msgJson.name, "msg":msgJson.msg} );
+    io.to(msgJson.roomName).emit('chatMessage2',{"id":msgJson.id, "name":msgJson.name, "msg":msgJson.msg} )
     //console.log('socketIds:' + socketIds);
   });
 

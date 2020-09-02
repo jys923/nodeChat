@@ -91,7 +91,7 @@
 
     $('#msg').submit(() => {
       //socket.emit('chatMessage2', roomNameG, name, $('#m').val());
-      socket.emit('chatMessage2',{"roomName":roomNameG,"name":name,"msg":$('#m').val()});
+      socket.emit('chatMessage2',{"roomName":roomNameG,"id":id,"name":name,"msg":$('#m').val()});
       $('#m').val('');
       return false;
     });
@@ -109,13 +109,14 @@
       return false;
     });
 
-    socket.on('setNameC', (name2) => {
-      $('#messages').append($('<li>').text(' setNmae :  ' + name2));
-        name = name2;
+    socket.on('setNameC', (msgJson) => {
+      $('#messages').append($('<li>').text(' setName :  ' + msgJson.name + ' setid :  ' + msgJson.id));
+        name = msgJson.name;
+        id = msgJson.id;
     });
 
     socket.on('chatMessage2', (msgJson/*name, msg*/) => {
-      $('#messages').append($('<li>').text(msgJson.name + '  :  ' + msgJson.msg));
+       $('#messages').append($('<li>').text(msgJson.id + '  :  ' + msgJson.name + '  :  ' + msgJson.msg));
     });
 
     socket.on('leaveRoom2', (roomName, name) => {
