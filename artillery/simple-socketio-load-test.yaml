@@ -1,0 +1,96 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 10
+      arrivalRate: 1
+    - duration: 10
+      arrivalRate: 5
+  variables:
+    greeting: ["hello", "goedemorgen", "добрый день", "guten tag", "bonjour", "hola"]
+  processor: "./functions.js"
+  payload: 
+   path: ./data.csv
+   fields: ["id", "roomName"]
+  
+scenarios:
+  - name: "A user that just lurks"
+    weight: 75
+    engine: "socketio"
+    flow:
+      - get:
+          url: "/"
+      - emit:
+          channel: "setNameS"
+          #data: "lurker-{{$randomString()}}"
+          data: 
+            name:  "{{id}}"
+      - think: 1
+      - emit:
+          channel: "joinRoom2"
+          data: 
+            name: "{{id}}"
+            roomName: "{{roomName}}"
+      - think: 60
+
+  - name: "A mostly quiet user"
+    weight: 15
+    engine: "socketio"
+    flow:
+      - get:
+          url: "/"
+      - emit:
+          channel: "setNameS"
+          #data: "quiet-{{ $randomString() }}"
+          data: 
+            name: "{{id}}"
+      - think: 1
+      - emit:
+          channel: "joinRoom2"
+          data: 
+            name: "{{id}}"
+            roomName: "{{roomName}}"
+      - think: 60
+      # - emit:
+      #     channel: "chatMessage2"
+      #     data: "{{ greeting }}"
+      #- think: 60
+
+  - name: "A chatty user"
+    weight: 10
+    engine: "socketio"
+    flow:
+      - get:
+          url: "/"
+      - emit:
+          channel: "setNameS"
+          #data: "chatty-{{ $randomString() }}"
+          data: 
+            name: "{{id}}"
+      - think: 1
+      - emit:
+          channel: "joinRoom2"
+          data: 
+            name: "{{id}}"
+            roomName: "{{roomName}}"
+      - think: 60
+      - emit:
+          channel: "chatMessage2"
+          data:
+            name: "{{id}}"
+            msg: "{{ greeting }}"
+            roomName: "{{roomName}}"
+      - loop:
+          - function: "setMessage"
+          - emit:
+              channel: "chatMessage2"
+              data:
+                name: "{{id}}"
+                msg: "{{ greeting }}"
+                roomName: "{{roomName}}"
+          - think: 1
+        count: 100
+      - think: 60
