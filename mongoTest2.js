@@ -16,26 +16,40 @@ db.once('open', function() {
 //var Schema = mongoose.Schema;
 // 6. Schema 생성. (혹시 스키마에 대한 개념이 없다면, 입력될 데이터의 타입이 정의된 DB 설계도 라고 생각하면 됩니다.)
 //let chatMsg = mongoose.Schema({
-let chatMsg = new mongoose.Schema({    
-    roomId : String,
-    uuId : String,
-    name : String,
-    msg : String,
-    time : { type: Date, default: Date.now }
-})
-// 7. 정의된 스키마를 객체처럼 사용할 수 있도록 model() 함수로 컴파일
-let ChatMsg = mongoose.model('Schema', chatMsg);
+// let chatMsg = new mongoose.Schema({    
+//     roomId : String,
+//     uuId : String,
+//     name : String,
+//     msg : String,
+//     time : { type: Date, default: Date.now }
+// })
+// // 7. 정의된 스키마를 객체처럼 사용할 수 있도록 model() 함수로 컴파일
+// let ChatMsg = mongoose.model('Schema', chatMsg);
 
-// 8. Student 객체를 new 로 생성해서 값을 입력
-let newChatMsg = new ChatMsg({roomId:'streamKey', uuId:'00-000-00000000000',name : 'user1',msg : 'hiwwwww~~~'});
+// // 8. Student 객체를 new 로 생성해서 값을 입력
+// let newChatMsg = new ChatMsg({roomId:'streamKey', uuId:'00-000-00000000000',name : 'user1',msg : 'hiwwwww~~~'});
 
-// 9. 데이터 저장
-newChatMsg.save(function(error, data){
-    if(error){
-        console.log(error);
-    }else{
-        console.log('Saved!')
-    }
+// // 9. 데이터 저장
+// newChatMsg.save(function(error, data){
+//     if(error){
+//         console.log(error);
+//     }else{
+//         console.log('Saved!')
+//     }
+// });
+
+var msg = require("./msg"); // 스키마 불러오기
+let MsgModel = new msg();
+MsgModel.roomId = "straem";
+MsgModel.uuId = "000-000-00000000";
+MsgModel.name = "user";
+MsgModel.msg = "hello2";
+MsgModel.save(function(error, data){
+  if(error){
+      console.log(error);
+  }else{
+      console.log('Saved!')
+  }
 });
 
 // // 6. Schema 생성. (혹시 스키마에 대한 개념이 없다면, 입력될 데이터의 타입이 정의된 DB 설계도 라고 생각하면 됩니다.)

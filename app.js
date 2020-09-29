@@ -15,6 +15,43 @@ const https = require('https').createServer(options, app)
 //const http = require('http').createServer(options, app)
 const io = require('socket.io')(https);
 
+var mongoose = require('mongoose');
+let database; 
+function connectDB(){
+    //let uri = 'mongodb://ws.danchu.co.kr:27017/danchuMsgDB?authSource=admin';
+    let uri = 'mongodb://localhost:27017/danchuMsgDB?authSource=admin';
+    let options = {
+        user: 'danchu',//user: 'root',
+        pass: 'danchu!@#123',//pass: 'changeme',
+        useNewUrlParser: true,
+        useUnifiedTopology: true 
+    }
+    mongoose.connect(uri, options, function(err){
+        if (err) throw err;
+        // if no error == connected
+        else
+            console.log('Connect!');
+    });
+    mongoose.Promise = global.Promise; 
+    database = mongoose.connection; 
+}
+
+connectDB()
+
+let msg = require("./msg"); // 스키마 불러오기
+// let MsgModel = new msg();
+// MsgModel.roomName = "straem";
+// MsgModel.uuId = "000-000-00000000";
+// MsgModel.name = "user2";
+// MsgModel.msg = "hello222aaaa";
+// MsgModel.save(function(error, data){
+//   if(error){
+//       console.log(error);
+//   }else{
+//       console.log('Saved!')
+//   }
+// });
+
 /* socket\room_chat\app.js */
 // const mongoose = require('mongoose');
 // const app = require('express')();
@@ -46,8 +83,8 @@ function isEmpty(str){
 
 io.sockets.on('connection', (socket) => {
   socket.on('disconnect', () => {
-    console.log('user disconnected' +' socket.name:' +socket.name+" socket.id:"+socket.id);
-    io.emit('userDisconnected', socket.name);
+    console.log('user disconnected' +' socket.name:' +socket.name+", socket.id:"+socket.id+", socket.uuid:"+socket.uuid);
+    io.emit('userDisconnected', {"name":socket.name,"id":socket.uuid});
     //소켓 삭제
     for (let index = 0; index < socketArr.length; index++) {
       if (socketArr[index].id==socket.id) {
@@ -119,6 +156,7 @@ io.sockets.on('connection', (socket) => {
     socket.join(msgJson.roomName, () => {
       console.log(msgJson.name + ' join a ' + msgJson.roomName);
       io.to(msgJson.roomName).emit('joinRoom2',{"roomName":msgJson.roomName,"name":msgJson.name});
+      
       if (roomArr.length > 0) {
         //roomArr id 검색 member 찾아서 맴버를  set으로 가져오고 이름 삽입
         let pushFlag = true;
@@ -146,9 +184,26 @@ io.sockets.on('connection', (socket) => {
     });
   });
 
+  socket.on('userCMD', (msgJson/*roomName, msg*/) => {
+    console.log('userCMD:' + msgJson.roomName);
+    io.to(msgJson.roomName).emit('userCMD',{"roomName":msgJson.roomName, "cmd":msgJson.cmd} )
+  });
+
   socket.on('chatMessage2', (msgJson/*roomName, name, msg*/) => {
     io.to(msgJson.roomName).emit('chatMessage2',{"id":msgJson.id, "name":msgJson.name, "msg":msgJson.msg} )
     //console.log('socketIds:' + socketIds);
+    let MsgModel = new msg();
+    MsgModel.roomName = msgJson.roomName;
+    MsgModel.uuId = msgJson.id;
+    MsgModel.name = msgJson.name;
+    MsgModel.msg = msgJson.msg;
+    MsgModel.save(function(error, data){
+      if(error){
+          console.log(error);
+      }else{
+          console.log('Saved!')
+      }
+    });
   });
 
   socket.on('chatMessageWhisper', (roomName, name, msg) => {

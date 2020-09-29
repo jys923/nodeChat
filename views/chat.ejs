@@ -63,6 +63,10 @@
   <input id="roomNumber" autocomplete="off"/>
   <button>enter</button>
 </form>
+<form action="" id="cmd">
+  <input id="cmdJson" autocomplete="off"/>
+  <button>cmdJson</button>
+</form>
 <ul id="messages"></ul>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -70,10 +74,12 @@
   $(() => {
     let name = prompt('What your name');
     console.log('setNameS:' + name);
+    let id = prompt('What your id');
+    console.log('setNameS:' + id);
     //소켓 접속
     const socket = io();
     //socket.emit('setNameS', name);
-    socket.emit('setNameS', {"name":name});
+    socket.emit('setNameS', {"name":name ,"id":id});
 
     let room = ['room1', 'room2'];
     let num = 0;
@@ -109,6 +115,13 @@
       return false;
     });
 
+    $('#cmd').submit(() => {
+      socket.emit('userCMD', {"roomName":$('#roomNumber').val(),"cmd":$('#cmdJson').val()} );
+      //socket.emit('userCMD', {$('#cmdJson').val()} );
+      $('#cmdJson').val('');
+      return false;
+    });
+
     socket.on('setNameC', (msgJson) => {
       $('#messages').append($('<li>').text(' setName :  ' + msgJson.name + ' setid :  ' + msgJson.id));
         name = msgJson.name;
@@ -116,15 +129,11 @@
     });
 
     socket.on('chatMessage2', (msgJson/*name, msg*/) => {
-       $('#messages').append($('<li>').text(msgJson.id + '  :  ' + msgJson.name + '  :  ' + msgJson.msg));
+      $('#messages').append($('<li>').text(msgJson.id + '  :  ' + msgJson.name + '  :  ' + msgJson.msg));
     });
 
     socket.on('leaveRoom2', (roomName, name) => {
       $('#messages').append($('<li>').text(name + '    leaved ' + roomName + ' :('));
-    });
-
-    socket.on('joinRoom', (num, name) => {
-      $('#messages').append($('<li>').text(name + '    joined ' + room[num] + ':)'));
     });
 
     socket.on('joinRoom2', (msgJson) => {
@@ -134,6 +143,11 @@
 
     socket.on('userDisconnected', (name) => {
       $('#messages').append($('<li>').text(name + ' userDisconnected ' + name + ':)'));
+        //roomNameG = roomName;
+    });
+
+    socket.on('userCMD', (msgJson) => {
+      $('#messages').append($('<li>').text(' roomName ' + msgJson.roomName + ' cmd ' + msgJson.cmd));
         //roomNameG = roomName;
     });
   });
